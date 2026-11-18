@@ -11,6 +11,8 @@
 # this one depends on has a new build. See
 # Docs/developer_guide/build_instructions/github_actions.md in Slicer.
 name: Build against the Slicer nightly
+# The platform in the name of the run: Slicer starts one run per platform.
+run-name: ${{ inputs.platforms && format('{0} - build against the Slicer nightly', inputs.platforms) || format('all platforms - {0}', github.event_name) }}
 
 on:
   push:
