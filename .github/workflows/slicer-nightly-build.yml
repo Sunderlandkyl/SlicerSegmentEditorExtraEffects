@@ -1,48 +1,22 @@
-# Builds this extension against the Slicer build published by the Slicer
-# repository's "Build" workflow.
-#
-# Everything the build needs is in the workflow Slicer provides: restoring the
-# published build tree, and those of the extensions this one depends on,
-# configuring, building, testing, packaging, loading the result into Slicer and
-# publishing the package of each platform as soon as it is built.
-#
-# A commit to this branch builds and publishes. Slicer's Reconcile extensions
-# workflow starts it too, one run per platform, when Slicer or an extension
-# this one depends on has a new build. See
-# Docs/developer_guide/build_instructions/github_actions.md in Slicer.
+# Builds, tests and publishes this extension against the Slicer nightly. How
+# is in the workflow Slicer provides; this says when, and what it may do.
 name: Build against the Slicer nightly
-# The platform in the name of the run: Slicer starts one run per platform.
-run-name: ${{ inputs.platforms && format('{0} - build against the Slicer nightly', inputs.platforms) || format('all platforms - {0}', github.event_name) }}
-
 on:
   push:
   pull_request:
   workflow_dispatch:
     inputs:
-      # Slicer's Reconcile extensions workflow starts one run per platform, so
-      # that no platform waits for another.
       platforms:
-        description: "Platforms to build (comma separated; default: all)"
-        default: ""
-
-permissions:
-  contents: read
-
+        description: "Platforms to build (default: all)"
 jobs:
   build:
     permissions:
       contents: write
-    # On Slicer/Slicer this is Slicer/Slicer/.github/workflows/extension-build.yml@main
+    # On Slicer/Slicer: Slicer/Slicer/.github/workflows/extension-build.yml@main,
+    # without slicer-repository and slicer-ref.
     uses: Sunderlandkyl/Slicer/.github/workflows/extension-build.yml@ci/github-actions-build
     with:
-      platforms: ${{ inputs.platforms || 'linux,macos,windows,web' }}
-      # The CMake project name, which is how other extensions name it.
+      publish: true
       extension-name: SegmentEditorExtraEffects
       slicer-repository: Sunderlandkyl/Slicer
       slicer-ref: ci/github-actions-build
-      # A commit to the default branch, and the builds Slicer starts, publish;
-      # a pull request or another branch builds and tests.
-      publish: >-
-        ${{ github.event_name == 'workflow_dispatch'
-            || (github.event_name == 'push'
-                && github.ref_name == github.event.repository.default_branch) }}
